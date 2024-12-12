@@ -1,25 +1,26 @@
-// http server & built in module
+const express = require("express");
 const http = require("http");
+const { Server } = require("socket.io");
 
-const data = require("./data");
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-http
-  .createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.write(JSON.stringify(data));
-    res.end();
-  })
-  .listen(3000);
+app.use(express.static("public")); // Serve static files
 
-// third party module
+io.on("connection", (socket) => {
+    console.log("A user connected");
 
-// const express = require('express');
-// const app = express();
+    socket.on("chat message", (msg) => {
+        console.log("Message received:", msg);
+        io.emit("chat message", msg); // Broadcast message to all clients
+    });
 
-// app.get('/', (req, res) => {
-//     res.send('Hello, Express!');
-// });
+    socket.on("disconnect", () => {
+        console.log("A user disconnected");
+    });
+});
 
-// app.listen(3000, () => {
-//     console.log('Server running at http://localhost:3000/');
-// });
+server.listen(3000, () => {
+    console.log("Server running on http://localhost:3000");
+});
